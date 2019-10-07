@@ -3,10 +3,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.interactions.Actions;
@@ -26,8 +25,6 @@ public class ItStep {
         System.out.println("Before All InitialDriver method called");
 
         String browser = String.valueOf(browserInit.chrome);
-        //String browser = "firefox";
-        //String browser = "Edge";
 
         //Check if parameter passed from TestNG is 'firefox'
         if (browser.equalsIgnoreCase("firefox")) {
@@ -35,8 +32,9 @@ public class ItStep {
             driver = new FirefoxDriver();
 
         } else if (browser.equalsIgnoreCase("chrome")) {
-
-            driver = new ChromeDriver();
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments(("--disable-notifications"));
+            driver = new ChromeDriver(options);
 
         } else if (browser.equalsIgnoreCase("Edge")) {
 
@@ -45,8 +43,8 @@ public class ItStep {
             //If no browser passed throw exception
             throw new Exception("Browser is not correct");
         }
-        //driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-        driver.manage().window().maximize();
+
+        //driver.manage().window().maximize();
     }
 
     @Test
@@ -55,18 +53,26 @@ public class ItStep {
 
         driver.get("https://www.tut.by/");
         System.out.println(driver.getTitle());
-
+        Actions actions = new Actions(driver);
         myWaitVar(driver, 10, By.id("mainmenu"));
 
         List<WebElement> menu = driver.findElements(By.xpath("//*[@id='mainmenu']/ul/li"));
         menu.get(3).click();
         System.out.println(driver.getTitle());
 
-        WebElement curses = driver.findElement(By.id("nav-more-kurs"));
-        curses.click();
-        System.out.println(driver.getTitle());
+        myWaitVar(driver, 10, By.cssSelector("#nav-more-kurs"));
+        WebElement curses = driver.findElement(By.cssSelector("#nav-more-kurs>a"));
+        actions.moveToElement(curses).build().perform();
 
-        WebElement russianRuble = driver.findElement(By.linkText("Курс российского рубля"));
+//      Thread.sleep(10000);
+//        driver.switchTo().frame("ym-native-frame");
+//        myWaitVarEnable(driver,1,By.xpath("//div[@id='closebtn']"));
+//        WebElement closebtn =driver.findElement(By.xpath("//div[@id='closebtn']"));
+//        driver.switchTo().frame(0);
+//        actions.sendKeys(Keys.ESCAPE).build().perform();
+
+        myWaitVar(driver, 5, By.xpath("//ul[@class='b-nav-popup-list']//a[@href='/kurs/minsk/rubl/']"));
+        WebElement russianRuble = driver.findElement(By.xpath("//ul[@class='b-nav-popup-list']//a[@href='/kurs/minsk/rubl/']"));
         russianRuble.click();
 
         myWaitVarEnable(driver, 5, By.id("title_rate"));
@@ -85,26 +91,33 @@ public class ItStep {
 
         driver.get("https://www.google.com");
         WebElement searh = driver.findElement(By.name("q"));
-        searh.sendKeys("Почему курс российского рубля "+requestCurse+" ниже "+currrentCourse);
+        searh.sendKeys("Почему курс российского рубля " + requestCurse + " ниже " + currrentCourse);
         searh.submit();
 
         driver.get("https://taxi.yandex.by/");
 
-        myWaitVar(driver, 10, By.id("hintaddressFrom"));
-        Actions actions = new Actions(driver);
+        myWaitVar(driver, 30, By.id("hintaddressFrom"));
 
         WebElement searh2 = driver.findElement(By.id("addressTo"));
         searh2.sendKeys(requestAddress);
+        //searh2.sendKeys("Минск");
+        myWaitVar(driver, 10, By.className("popup_visibility_visible"));
+
+        List<WebElement> itemsTo = driver.findElements(By.className("b-autocomplete-item"));
+
+        itemsTo.get(6).click();
 
         WebElement currentlocation = driver.findElement(By.className("input__location"));
         WebElement currentAddress = driver.findElement(By.id("addressFrom"));
         currentAddress.click();
+
         currentlocation.click();
-        myWaitVar(driver,6,By.xpath("/html/body/div[1]/div[4]/div[1]/div[1]/div[2]/div[6]/div[2]/button"));
-        WebElement demo = driver.findElement(By.xpath("/html/body/div[1]/div[4]/div[1]/div[1]/div[2]/div[6]/div[2]/button"));
+
+        myWaitVar(driver, 6, By.xpath("//button[@class='button button_size_xl button_theme_normal button_action_demo button_width_full js-demo-order i-bem button_js_inited']"));
+        WebElement demo = driver.findElement(By.xpath("//button[@class='button button_size_xl button_theme_normal button_action_demo button_width_full js-demo-order i-bem button_js_inited']"));
 
         demo.click();
-        myWaitVar(driver,30,By.className("popup-info"));
+        myWaitVar(driver, 30, By.className("popup-info"));
     }
 
     @Test
