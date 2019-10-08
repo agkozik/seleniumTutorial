@@ -22,29 +22,61 @@ public class ItStep {
 
     @BeforeAll
     public static void InitialDriver() throws Exception {
-        System.out.println("Before All InitialDriver method called");
 
+        System.out.println("Before All InitialDriver method called");
         String browser = String.valueOf(browserInit.chrome);
 
-        //Check if parameter passed from TestNG is 'firefox'
         if (browser.equalsIgnoreCase("firefox")) {
-
             driver = new FirefoxDriver();
-
         } else if (browser.equalsIgnoreCase("chrome")) {
             ChromeOptions options = new ChromeOptions();
             options.addArguments(("--disable-notifications"));
             driver = new ChromeDriver(options);
-
         } else if (browser.equalsIgnoreCase("Edge")) {
-
             driver = new EdgeDriver();
         } else {
-            //If no browser passed throw exception
             throw new Exception("Browser is not correct");
         }
-
         //driver.manage().window().maximize();
+    }
+
+    @Test
+    public void closePopUpWindow() throws InterruptedException {
+
+        driver.get("https://finance.tut.by/kurs/");
+        System.out.println(driver.getTitle());
+        Actions actions = new Actions(driver);
+        myWaitVar(driver, 10, By.id("mainmenu"));
+
+
+        (new WebDriverWait(driver, 20))
+               .until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.xpath("//iframe[@name='ym-native-frame']")));
+
+        new WebDriverWait(driver, 11).until(ExpectedConditions.elementToBeClickable(By.id("closebtn")));
+
+        WebElement closebtn = driver.findElement(By.id("closebtn"));
+        actions.moveToElement(closebtn).click().build().perform();
+
+        //actions.sendKeys(Keys.ESCAPE).build().perform();
+        actions.moveToElement(closebtn).click().build().perform();
+
+        driver.switchTo().defaultContent();
+        Thread.sleep(2000);
+    }
+
+    /**
+     * Explicit wait - driver waits until result "by" will be visible
+     */
+    private WebElement myWaitVar(WebDriver driver, long timeoutSec, By by) {
+
+        return new WebDriverWait(driver, timeoutSec)
+                .until(ExpectedConditions.visibilityOfElementLocated(by));
+    }
+
+    private WebElement myWaitVarEnable(WebDriver driver, long timeoutSec, By by) {
+
+        return new WebDriverWait(driver, timeoutSec)
+                .until(ExpectedConditions.presenceOfElementLocated(by));
     }
 
     @Test
@@ -82,6 +114,7 @@ public class ItStep {
         System.out.println("Лучший курс " + requestCurse);
         bestCurse.click();
 
+        myWaitVar(driver, 20, By.className("address-col"));
         List<WebElement> address = driver.findElements(By.className("address-col"));
         String requestAddress = address.get(1).getText();
         System.out.println(requestAddress);
@@ -98,25 +131,22 @@ public class ItStep {
 
         myWaitVar(driver, 30, By.id("hintaddressFrom"));
 
+        WebElement currentlocation = driver.findElement(By.className("input__location"));
+        currentlocation.click();
+
         WebElement searh2 = driver.findElement(By.id("addressTo"));
         searh2.sendKeys(requestAddress);
         //searh2.sendKeys("Минск");
+
         myWaitVar(driver, 10, By.className("popup_visibility_visible"));
-
         List<WebElement> itemsTo = driver.findElements(By.className("b-autocomplete-item"));
+        itemsTo.get(0).click();
 
-        itemsTo.get(6).click();
 
-        WebElement currentlocation = driver.findElement(By.className("input__location"));
-        WebElement currentAddress = driver.findElement(By.id("addressFrom"));
-        currentAddress.click();
+        myWaitVar(driver, 20, By.xpath("//span[text()='Демо-заказ']"));
+        WebElement demo = driver.findElement(By.xpath("//span[text()='Демо-заказ']"));
+        actions.moveToElement(demo).click().build().perform();
 
-        currentlocation.click();
-
-        myWaitVar(driver, 6, By.xpath("//button[@class='button button_size_xl button_theme_normal button_action_demo button_width_full js-demo-order i-bem button_js_inited']"));
-        WebElement demo = driver.findElement(By.xpath("//button[@class='button button_size_xl button_theme_normal button_action_demo button_width_full js-demo-order i-bem button_js_inited']"));
-
-        demo.click();
         myWaitVar(driver, 30, By.className("popup-info"));
     }
 
@@ -192,19 +222,6 @@ public class ItStep {
         driver = null;
     }
 
-    /**
-     * Explicit wait - driver waits until result "by" will be visible
-     */
-    private WebElement myWaitVar(WebDriver driver, long timeoutSec, By by) {
 
-        return new WebDriverWait(driver, timeoutSec)
-                .until(ExpectedConditions.visibilityOfElementLocated(by));
-    }
-
-    private WebElement myWaitVarEnable(WebDriver driver, long timeoutSec, By by) {
-
-        return new WebDriverWait(driver, timeoutSec)
-                .until(ExpectedConditions.presenceOfElementLocated(by));
-    }
 }
 
